@@ -12,8 +12,9 @@
  */
 
 use error_chain::error_chain;
-use std::fs::File;
-use std::io::prelude::*;
+//use std::fs::File;
+//use std::io::prelude::*;
+use std::io::Cursor;
 use std::path::Path;
 
 error_chain! {
@@ -29,32 +30,23 @@ error_chain! {
 //}
 
 fn main() {
+    Path::new("./lib");
     download(
         "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.so",
-        "crypto.so",
+        "./lib/crypto.so",
     )
     .ok();
-    //download(
-    //    "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.h",
-    //    "crypto.h",
-    //)
-    //.ok();
+    download(
+        "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.h",
+        "./lib/crypto.h",
+    )
+    .ok();
 }
 #[tokio::main]
 async fn download(target: &str, fname: &str) -> Result<()> {
-    //let target =
-    //    "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.h";
     let response = reqwest::get(target).await?;
-
-    let path = Path::new(fname);
-
-    let mut file = match File::create(&path) {
-        Err(why) => panic!("couldn't create {}", why),
-        Ok(file) => file,
-    };
-    //let content = response.bytes().await?;
-    //file.write_all(content.as_bytes())?;
-    let content = response.text().await?;
-    file.write_all(content.as_bytes())?;
+    let mut file = std::fs::File::create(fname)?;
+    let mut content = Cursor::new(response.bytes().await?);
+    std::io::copy(&mut content, &mut file)?;
     Ok(())
 }
