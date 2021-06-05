@@ -15,7 +15,7 @@ use error_chain::error_chain;
 //use std::fs::File;
 //use std::io::prelude::*;
 use std::io::Cursor;
-use std::path::Path;
+//use std::path::Path;
 
 error_chain! {
     foreign_links {
@@ -30,7 +30,7 @@ error_chain! {
 //}
 
 fn main() {
-    Path::new("./lib");
+    std::fs::create_dir("./lib").ok();
     download(
         "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.so",
         "./lib/crypto.so",
@@ -41,6 +41,8 @@ fn main() {
         "./lib/crypto.h",
     )
     .ok();
+    println!("cargo:rustc-link-lib=dylib=crypto");
+    println!("cargo:rustc-link-search=native=$(pwd)/lib/");
 }
 #[tokio::main]
 async fn download(target: &str, fname: &str) -> Result<()> {
