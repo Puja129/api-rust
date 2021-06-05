@@ -15,6 +15,7 @@ use error_chain::error_chain;
 //use std::fs::File;
 //use std::io::prelude::*;
 use std::io::Cursor;
+use std::env;
 //use std::path::Path;
 
 error_chain! {
@@ -30,14 +31,19 @@ error_chain! {
 //}
 
 fn main() {
+    let arch = match env::var("L_ARCH") {
+        Ok(val) => val,
+        Err(_e) => "none".to_string(),
+    };
+    
     std::fs::create_dir("./lib").ok();
     download(
-        "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.so",
+        format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.so",arch).as_str(),
         "./lib/crypto.so",
     )
     .ok();
     download(
-        "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.h",
+        format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.h",arch).as_str(),
         "./lib/crypto.h",
     )
     .ok();
