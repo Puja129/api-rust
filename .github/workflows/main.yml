@@ -1,0 +1,23 @@
+name: main-build
+on:
+  # Triggers the workflow on push or pull request events but only for the v1.1beta_helm_pkg_update_lber_ay branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: |
+          tree ./
+          RUSTFLAGS="-C link-args=-Wl,$(pwd)/lib/crypto.so" cargo build
+          
+           
