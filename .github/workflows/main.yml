@@ -18,8 +18,8 @@ jobs:
           toolchain: stable
       - env:
           L_ARCH: linux
-          run: |
-            tree ./
-            RUSTFLAGS="-C link-args=-Wl,$(pwd)/lib/crypto.so" cargo build
+        run: |
+          tree ./
+          RUSTFLAGS="-C link-args=-Wl,$(pwd)/lib/crypto.so" cargo build
           
            
