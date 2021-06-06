@@ -32,10 +32,10 @@ error_chain! {
 
 fn main() {
 
-    /*let _arch = match env::var("L_ARCH") {
+    let _arch = match env::var("L_ARCH") {
         Ok(val) => val,
         Err(_e) => "none".to_string(),
-    };*/
+    };
     
     //let path = env::current_dir().unwrap();
 
@@ -46,7 +46,7 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
     println!("cargo:rustc-link-lib=dylib=crypto");
-    println!("cargo:rustc-link-search=native=/usr/local/libra/lib/");
+    println!("cargo:rustc-link-search=native=/usr/local/libra/{}/lib",_arch.as_str());
 
     //std::fs::create_dir("./lib").ok();
     /*download(

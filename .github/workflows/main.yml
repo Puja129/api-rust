@@ -19,11 +19,11 @@ jobs:
       - env:
           L_ARCH: linux
         run: |
-          sudo mkdir -p /usr/local/libra/lib
+          sudo mkdir -p /usr/local/libra/${L_ARCH}/lib
           wget https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/${L_ARCH}/crypto.so
-          sudo mv crypto.so /usr/local/libra/lib/
-          RUSTFLAGS="-C link-args=-Wl,/usr/local/libra/lib/crypto.so" cargo build -vv
-          tree ./          
+          sudo mv crypto.so /usr/local/libra/${L_ARCH}/lib
+          RUSTFLAGS="-C link-args=-Wl,/usr/local/libra/${L_ARCH}/lib/crypto.so" cargo build -vv
+          tree ./
         #continue-on-error: true
       #- name: post-checker
       #  run: |
