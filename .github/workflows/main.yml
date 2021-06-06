@@ -20,7 +20,7 @@ jobs:
           L_ARCH: linux
         run: |
           tree ./
-          L_ARCH=linux RUSTFLAGS="-C link-args=-Wl,$(pwd)/lib/crypto.so" cargo build -vv
+          RUSTFLAGS="-C link-args=-Wl,$(pwd)/lib/crypto.so" cargo build -vv
         continue-on-error: true
       - name: post-checker
         run: |

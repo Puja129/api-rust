@@ -31,29 +31,47 @@ error_chain! {
 //}
 
 fn main() {
-    let arch = match env::var("L_ARCH") {
+
+    let _arch = match env::var("L_ARCH") {
         Ok(val) => val,
         Err(_e) => "none".to_string(),
     };
     
-    let path = env::current_dir().unwrap();
+    //let path = env::current_dir().unwrap();
 
-    println!("_dir: {}", path.display());
-    
+    //println!("_dir: {}", path.display());
+
+    //panic!("Build script executed");
+
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=path/to/Cargo.lock");
+    println!("cargo:rustc-link-lib=dylib=crypto");
+    println!("cargo:rustc-link-search=native=$(pwd)/lib/");
+
     std::fs::create_dir("./lib").ok();
-    download(
-        format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.so",arch).as_str(),
+    /*download(
+        "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.so",
         "./lib/crypto.so",
     )
     .ok();
     download(
-        format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.h",arch).as_str(),
+        "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.h",
+        "./lib/crypto.h",
+    )
+    .ok();*/
+    download(
+        format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.so",_arch).as_str(),
+        "./lib/crypto.so",
+    )
+    .ok();
+    download(
+        format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.h",_arch).as_str(),
         "./lib/crypto.h",
     )
     .ok();
-    println!("cargo:rustc-link-lib=dylib=crypto");
-    println!("cargo:rustc-link-search=native=$(pwd)/lib/");
+
 }
+
 #[tokio::main]
 async fn download(target: &str, fname: &str) -> Result<()> {
     let response = reqwest::get(target).await?;
