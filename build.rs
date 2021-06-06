@@ -46,7 +46,7 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
     println!("cargo:rustc-link-lib=dylib=crypto");
-    println!("cargo:rustc-link-search=native=$(pwd)/lib/");
+    println!("cargo:rustc-link-search=native=/usr/local/libra/lib/");
 
     //std::fs::create_dir("./lib").ok();
     /*download(
