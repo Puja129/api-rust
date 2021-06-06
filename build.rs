@@ -32,10 +32,10 @@ error_chain! {
 
 fn main() {
 
-    let _arch = match env::var("L_ARCH") {
+    /*let _arch = match env::var("L_ARCH") {
         Ok(val) => val,
         Err(_e) => "none".to_string(),
-    };
+    };*/
     
     //let path = env::current_dir().unwrap();
 
@@ -48,7 +48,7 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=crypto");
     println!("cargo:rustc-link-search=native=$(pwd)/lib/");
 
-    std::fs::create_dir("./lib").ok();
+    //std::fs::create_dir("./lib").ok();
     /*download(
         "https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/arm/crypto.so",
         "./lib/crypto.so",
@@ -59,7 +59,7 @@ fn main() {
         "./lib/crypto.h",
     )
     .ok();*/
-    download(
+    /*download(
         format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.so",_arch).as_str(),
         "./lib/crypto.so",
     )
@@ -68,7 +68,7 @@ fn main() {
         format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.h",_arch).as_str(),
         "./lib/crypto.h",
     )
-    .ok();
+    .ok();*/
 
 }
 
