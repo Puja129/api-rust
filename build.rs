@@ -36,6 +36,10 @@ fn main() {
         Err(_e) => "none".to_string(),
     };
     
+    let path = env::current_dir().unwrap();
+
+    println!("_dir: {}", path.display());
+    
     std::fs::create_dir("./lib").ok();
     download(
         format!("https://raw.githubusercontent.com/LIBRA-Release/libra/v0.1.0-reiwa/lib/{}/crypto.so",arch).as_str(),
