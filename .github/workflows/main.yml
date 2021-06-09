@@ -24,6 +24,7 @@ jobs:
           sudo mv crypto.so /usr/local/libra/${L_ARCH}/lib
           RUSTFLAGS="-C link-args=-Wl,/usr/local/libra/${L_ARCH}/lib/crypto.so" cargo build -vv
           tree ./
+          ./target/debug/dummy-libra-service
         #continue-on-error: true
       #- name: post-checker
       #  run: |
