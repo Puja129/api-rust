@@ -1,61 +1,121 @@
-/*
- * Copyright (c) 2016 General Electric Company. All rights reserved.
- *
- * The copyright to the computer software herein is the property of
- * General Electric Company. The software may be used and/or copied only
- * with the written permission of General Electric Company or in accordance
- * with the terms and conditions stipulated in the agreement/contract
- * under which the software has been supplied.
- *
- * author: apolo.yasuda@ge.com
- *
- */
 extern crate libc;
 
-use libc::c_char;
-use std::ffi::{CString,CStr};
-use std::str;
+use std::fs;
 
-extern "C" {
-    fn ValidateTokenExp(p0: *const c_char) -> *const c_char;
-    fn GeneratePassphrase() -> *const c_char;
-    fn RefreshPassphrase();
-}
+use futures::stream::StreamExt;
 
-fn main() {
+use async_std::net::{SocketAddr,TcpListener};
+use async_std::prelude::*;
+use async_std::task::spawn;
 
-    println!("the hash: {}", generate_passphrase());
-    sched_refresh_passphrase();
-    println!("the uuid ({}) of a dummy token",validate_bearer_token("dummy token"));         
+#[async_std::main]
+async fn main() {
+
+    let addrs = [
+        SocketAddr::from(([0, 0, 0, 0], 17990)),
+    ];
     
+    let listener = TcpListener::bind(&addrs[..]).await.unwrap();
+    listener
+        .incoming()
+        .for_each_concurrent(/* limit */ None, |stream| async move {
+            let stream = stream.unwrap();
+            spawn(handle_connection(stream));
+        })
+        .await;
 }
 
-fn str2char(_s: &str) -> *const c_char {
-    let _tk = CString::new(_s).unwrap();
-    _tk.as_ptr() as *const c_char
+use async_std::io::{Read, Write};
+use std::marker::Unpin;
+
+async fn handle_connection(mut stream: impl Read + Write + Unpin) {
+    let mut buffer = [0; 1024];
+    stream.read(&mut buffer).await.unwrap();
+    let get = b"GET / HTTP/1.1\r\n";
+    let (status_line, filename) = if buffer.starts_with(get) {
+        ("HTTP/1.1 200 OK\r\n\r\n", "hello.html")
+    } else {
+        ("HTTP/1.1 404 NOT FOUND\r\n\r\n", "404.html")
+    };
+    let contents = fs::read_to_string(filename).unwrap();
+    let response = format!("{}{}", status_line, contents);
+    stream.write(response.as_bytes()).await.unwrap();
+    stream.flush().await.unwrap();
 }
 
-fn char2str(_c: *const c_char) -> String {
-    let c_str: &CStr = unsafe {CStr::from_ptr(_c)};
-    //to_owned is to convrt &str -> String ay
-    //str_slice.to_owned()
+#[cfg(test)]
 
-    c_str.to_str().unwrap().to_owned()
-}
+mod tests {
+    // ANCHOR: mock_read
+    use super::*;
+    use futures::io::Error;
+    use futures::task::{Context, Poll};
 
-fn generate_passphrase() -> String {
-    let c_buf: *const c_char = unsafe { GeneratePassphrase()};
-    char2str(c_buf)
-}
-fn validate_bearer_token(tk: &str) -> String {
-    let c_tk = str2char(tk);
-    let c_buf: *const c_char = unsafe { ValidateTokenExp(c_tk) };
-    char2str(c_buf)
-}
+    use std::cmp::min;
+    use std::pin::Pin;
 
-fn sched_refresh_passphrase() {
-    unsafe {
-        RefreshPassphrase()        
+    struct MockTcpStream {
+        read_data: Vec<u8>,
+        write_data: Vec<u8>,
     }
-}
 
+    impl Read for MockTcpStream {
+        fn poll_read(
+            self: Pin<&mut Self>,
+            _: &mut Context,
+            buf: &mut [u8],
+        ) -> Poll<Result<usize, Error>> {
+            let size: usize = min(self.read_data.len(), buf.len());
+            buf[..size].copy_from_slice(&self.read_data[..size]);
+            Poll::Ready(Ok(size))
+        }
+    }
+    // ANCHOR_END: mock_read
+
+    // ANCHOR: mock_write
+    impl Write for MockTcpStream {
+        fn poll_write(
+            mut self: Pin<&mut Self>,
+            _: &mut Context,
+            buf: &[u8],
+        ) -> Poll<Result<usize, Error>> {
+            self.write_data = Vec::from(buf);
+            return Poll::Ready(Ok(buf.len()));
+        }
+        fn poll_flush(self: Pin<&mut Self>, _: &mut Context) -> Poll<Result<(), Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn poll_close(self: Pin<&mut Self>, _: &mut Context) -> Poll<Result<(), Error>> {
+            Poll::Ready(Ok(()))
+        }
+    }
+    // ANCHOR_END: mock_write
+
+    // ANCHOR: unpin
+    use std::marker::Unpin;
+    impl Unpin for MockTcpStream {}
+    // ANCHOR_END: unpin
+
+    // ANCHOR: test
+    use std::fs;
+
+    #[async_std::test]
+    async fn test_handle_connection() {
+        let input_bytes = b"GET / HTTP/1.1\r\n";
+        let mut contents = vec![0u8; 1024];
+        contents[..input_bytes.len()].clone_from_slice(input_bytes);
+        let mut stream = MockTcpStream {
+            read_data: contents,
+            write_data: Vec::new(),
+        };
+
+        handle_connection(&mut stream).await;
+        let mut buf = [0u8; 1024];
+        stream.read(&mut buf).await.unwrap();
+
+        let expected_contents = fs::read_to_string("hello.html").unwrap();
+        let expected_response = format!("HTTP/1.1 200 OK\r\n\r\n{}", expected_contents);
+        assert!(stream.write_data.starts_with(expected_response.as_bytes()));
+    }
+    // ANCHOR_END: test
+}

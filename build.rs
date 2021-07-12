@@ -36,10 +36,9 @@ fn main() {
         Ok(val) => val,
         Err(_e) => "none".to_string(),
     };
-    
-    //let path = env::current_dir().unwrap();
 
-    //println!("_dir: {}", path.display());
+    let path = env::current_dir().unwrap();
+    println!("_dir: {}", path.display());
 
     //panic!("Build script executed");
 
