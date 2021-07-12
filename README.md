@@ -5,6 +5,7 @@ A Dummy Rust REST API endpoints based on the opensource BC subscription [LIBRA](
 ### Build Requirement
 - [Build Env](https://github.com/dc-release/api-rust/runs/2758353360?check_suite_focus=true#step:3:19)
 - [Target OS](https://github.com/dc-release/api-rust/runs/2758353360?check_suite_focus=true#step:3:15)
+- [Cargo](https://doc.rust-lang.org/cargo/index.html)
 
 ### Build Steps
 - [Commands Prompt](https://github.com/dc-release/api-rust/blob/main/.github/workflows/main.yml#L22)
